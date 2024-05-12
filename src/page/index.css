@@ -1,0 +1,17 @@
+.contain {
+    height: 100vh;
+}
+
+.home_header {
+    padding: 0;
+}
+.home_aside {
+    background-color: white !important;
+}
+.home_content {
+    margin: 15px;
+    padding: 1px;
+    border: 1px solid #1677ff;
+    border-radius: 10px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+}

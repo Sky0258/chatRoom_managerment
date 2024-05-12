@@ -1,0 +1,22 @@
+.header_contain {
+    background-color: #e6f4ff;
+    padding: 0 40px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.header_title {
+    font-size: 20px;
+    font-weight: 700;
+}
+.header_username {
+    margin: 0 50px 0 10px;
+    font-size: 17px;
+}
+.change_modal_contain {
+    display: flex;
+    align-items: center;
+}
+.change_modal_title {
+    padding-right: 10px;
+}
