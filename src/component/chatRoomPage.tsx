@@ -1,114 +1,56 @@
 import { Modal, Space, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import ChatRoomMessage from './modal/ChatRoomMessage';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { reqAllChatRoomList, reqChangeChatRoomStatus } from '../api/modules/chatRoom';
+import ChangeStatus from './modal/ChangeStatus';
 
 interface DataType {
     key: string;
-    userID: string;
-    username: string;
-    email: string;
-    tags: string[];
+    id: string;
+    groupName: string;
+    status: string;
 }
 
-
-const data: DataType[] = [
-    {
-        key: '1',
-        userID: '1',
-        username: "群聊1",
-        email: '12345678@163.com',
-        tags: ['系统管理员'],
-    },
-    {
-        key: '2',
-        userID: '2',
-        username: "天天向上群",
-        email: '1111111@163.com',
-        tags: ['正常'],
-    },
-    {
-        key: '3',
-        userID: '3',
-        username: "good good study",
-        email: '2222222222@163.com',
-        tags: ['正常'],
-    },
-    {
-        key: '4',
-        userID: '4',
-        username: "发财计划",
-        email: '34562132@163.com',
-        tags: ['正常'],
-    },
-    {
-        key: '5',
-        userID: '5',
-        username: "群聊2",
-        email: '888888962@163.com',
-        tags: ['禁用'],
-    },
-    {
-        key: '6',
-        userID: '6',
-        username: "相亲相爱家庭群",
-        email: '88888891234@163.com',
-        tags: ['正常'],
-    },
-    {
-        key: '7',
-        userID: '7',
-        username: "群聊3",
-        email: '88888891234@163.com',
-        tags: ['正常'],
-    },
-];
 export default function UserPage() {
-    const [modalOpen, setModalOpen] = useState(false);
+    const [statusModalOpen, setStatusModalOpen] = useState(false);
+    const [recordsModalOpen, setRecordsModalOpen] = useState(false);
+    const [data, setData] = useState<DataType[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [status, setStatus] = useState("0");
+    const [chatRoomID, setChatRoomID] = useState("0");
+    const [groupName, setGroupName] = useState("");
+
     const columns: ColumnsType<DataType> = [
         {
             title: '群组ID',
-            dataIndex: 'userID',
-            key: 'userID',
+            dataIndex: 'id',
+            key: 'id',
             align: 'center',
             render: text => <a>{text}</a>,
         },
         {
             title: '群组名称',
-            dataIndex: 'username',
-            key: 'age',
+            dataIndex: 'groupName',
+            key: 'groupName',
             align: 'center',
         },
         {
             title: '群组状态',
-            key: 'tags',
-            dataIndex: 'tags',
+            key: 'status',
+            dataIndex: 'status',
             align: 'center',
-            render: (_, { tags }) => (
-                <>
-                    {tags.map(tag => {
-    
-                        let color = tag.length > 5 ? 'geekblue' : 'green';
-                        if (tag === 'loser') {
-                            color = 'volcano';
-                        }
-                        if (tag == '禁用') {
-                            color = 'volcano';
-                        }
-                        if (tag == '系统管理员') {
-                            color = 'geekblue';
-                        }
-                        if (tag == '正常') {
-                            color = 'green';
-                        }
-                        return (
-                            <Tag color={color} key={tag}>
-                                {tag.toUpperCase()}
-                            </Tag>
-                        );
-                    })}
-                </>
-            ),
+            render: (status) => {
+                let color = 'green';
+                let text = '正常'
+                if (status == '1') {
+                    text = '禁用';
+                    color = 'volcano';
+                }
+                return <Tag color={color} key={status}>
+                    {text}
+                </Tag>
+            }
         },
         {
             title: '操作',
@@ -116,18 +58,73 @@ export default function UserPage() {
             align: 'center',
             render: (_, record) => (
                 <Space size="middle">
-                    <a onClick={() => setModalOpen(true)}>修改群组状态</a>
-                    <a>查看聊天信息</a>
+                    <a onClick={() => {
+                        setStatusModalOpen(true);
+                        setStatus(record.status);
+                        setChatRoomID(record.id);
+                    }}>修改群组状态</a>
+                    <a onClick={() => {
+                        setRecordsModalOpen(true);
+                        setGroupName(record.groupName);
+                        setChatRoomID(record.id);
+                    }}>查看聊天信息</a>
                 </Space>
             ),
         },
     ];
 
+    useEffect(() => {
+        reqAllChatRoomList().then(res => {
+            setData(res.data.results);
+        })
+    }, []);
+
+    function handleChangeStatus(value: string) {
+        setStatus(value);
+    }
+    function handleOk() {
+        setLoading(true);
+        setTimeout(() => {
+            setLoading(false);
+            setStatusModalOpen(false);
+            // 修改群组权限
+            reqChangeChatRoomStatus({
+                chatRoomID,
+                status
+            }).then((res) => {
+                // 重新加载数据
+                reqAllChatRoomList().then((res) => {
+                    setData(res.data.results);
+                })
+            })
+        }, 1000);
+    }
+    function handleCancel() {
+        setStatusModalOpen(false);
+        setRecordsModalOpen(false);
+    }
     return (
         <div>
             <Table columns={columns} dataSource={data} />
-            <Modal title="群组1 聊天记录" open={modalOpen} footer={false}>
-                <ChatRoomMessage></ChatRoomMessage>
+            <Modal 
+                title="修改群组权限" 
+                open={statusModalOpen} 
+                confirmLoading={loading}
+                width="450px"
+                okText="保存修改"
+                cancelText="取消"
+                onOk={handleOk}
+                onCancel={handleCancel}
+            >
+                <ChangeStatus handleChangeStatus={handleChangeStatus} status={status} title="群组"></ChangeStatus>
+            </Modal>
+            <Modal 
+                title={groupName + " 聊天记录"}
+                open={recordsModalOpen} 
+                footer={false}
+                onCancel={handleCancel}
+            >
+                <ChatRoomMessage chatRoomID={chatRoomID}></ChatRoomMessage>
             </Modal>
         </div>
 

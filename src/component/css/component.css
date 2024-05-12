@@ -9,6 +9,9 @@
     font-size: 20px;
     font-weight: 700;
 }
+.header_user_contain {
+    cursor: pointer;
+}
 .header_username {
     margin: 0 50px 0 10px;
     font-size: 17px;
@@ -19,4 +22,9 @@
 }
 .change_modal_title {
     padding-right: 10px;
+}
+.records_modal_contain {
+    height: 390px;
+    overflow: scroll;
+    overflow-x: hidden;
 }

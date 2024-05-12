@@ -1,7 +1,7 @@
 import { Modal, Space, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useState } from 'react';
-import { reqAllUserList } from '../api/modules/user';
+import { reqAllUserList, reqChangeUserStatus } from '../api/modules/user';
 import ChangeStatus from './modal/ChangeStatus';
 
 interface DataType {
@@ -16,6 +16,7 @@ export default function UserPage() {
     const [modalOpen, setModalOpen] = useState<boolean>(false);
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState("0");
+    const [userID, setUserID] = useState("0");
     const columns: ColumnsType<DataType> = [
         {
             title: '用户ID',
@@ -61,7 +62,8 @@ export default function UserPage() {
                 <Space size="middle">
                     <a onClick={() => {
                         setModalOpen(true);
-                        setStatus(record.status)
+                        setStatus(record.status);
+                        setUserID(record.id);
                     }}>修改用户权限</a>
                 </Space>
             ),
@@ -69,8 +71,7 @@ export default function UserPage() {
     ];
     useEffect(() => {
         reqAllUserList().then((res) => {
-            console.log(res.data, '接口数据');
-            setData(res.data.results)
+            setData(res.data.results);
         })
     }, []);
     function handleCancel() {
@@ -81,10 +82,20 @@ export default function UserPage() {
         setTimeout(() => {
             setLoading(false);
             setModalOpen(false);
-        }, 1500);
+            // 修改用户权限
+            reqChangeUserStatus({
+                userID,
+                status
+            }).then((res) => {
+                // 重新加载数据
+                reqAllUserList().then((res) => {
+                    setData(res.data.results);
+                })
+            })
+        }, 1000);
     }
     function handleChangeStatus(value: string) {
-        console.log(value, '1212');
+        setStatus(value);
     }
     return (
         <div>
@@ -98,7 +109,7 @@ export default function UserPage() {
                 onOk={handleOk}
                 onCancel={handleCancel}
             >
-                <ChangeStatus handleChangeStatus={handleChangeStatus} status={status}></ChangeStatus>
+                <ChangeStatus handleChangeStatus={handleChangeStatus} status={status} title="用 户"></ChangeStatus>
             </Modal>
         </div>
     )

@@ -1,6 +1,6 @@
 import { Layout } from 'antd';
 import React from 'react';
-import './index.css'
+import './css/index.css'
 import HeaderContain from '../component/header';
 import AsideContain from '../component/aside';
 import { Routes, Route } from 'react-router-dom';
